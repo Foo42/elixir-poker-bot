@@ -8,6 +8,7 @@ defmodule PokerBot.Router do
     get "/", PokerBot.PageController, :index, as: :pages
     post "/update", PokerBot.PageController, :update, as: :pages
     post "/start", PokerBot.PageController, :start, as: :pages
+    get "/move", PokerBot.PageController, :move, as: :page
   end
 
   # Other scopes may use custom stacks.

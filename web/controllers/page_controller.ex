@@ -32,4 +32,8 @@ defmodule PokerBot.PageController do
     text conn, "starting"
   end
 
+  def move(conn, _params) do
+    "in move" |> IO.puts
+    text conn, PokerBot.PokerMatch.move()
+  end
 end

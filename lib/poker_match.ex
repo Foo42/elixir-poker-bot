@@ -9,12 +9,21 @@ defmodule PokerBot.PokerMatch do
     GenServer.cast(:the_poker_match, {:new_card, card})
   end
 
+  def move() do
+    GenServer.call(:the_poker_match, :move) 
+  end
+
+  defp begin_new_hand(state, card) do 
+    new_hand = %{:card => card}
+    Map.put state, :hands, [new_hand | state.hands]
+  end
+
 
 
   #####################
 
   def init(_args) do
-    {:ok, %{}}
+    {:ok, %{:hands => []}}
   end
 
   def handle_call(_msg, _from, _state) do
@@ -22,9 +31,12 @@ defmodule PokerBot.PokerMatch do
   end
 
   def handle_cast({:new_card, card}, state) do
-    IO.puts "current state = #{inspect state}"
-    newState = Map.put state, :current_card, card
-    IO.puts "new state = #{inspect newState}"
+    newState = begin_new_hand state, card
     {:noreply, newState}
+  end
+
+  def handle_call(:move, _from, _state) do
+    "In handle call" |> IO.puts
+    "BET"
   end
 end
