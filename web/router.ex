@@ -6,6 +6,7 @@ defmodule PokerBot.Router do
     pipe_through :browser
 
     get "/", PokerBot.PageController, :index, as: :pages
+    post "/update", PokerBot.PageController, :update, as: :pages
   end
 
   # Other scopes may use custom stacks.
