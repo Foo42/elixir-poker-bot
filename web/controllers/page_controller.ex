@@ -20,6 +20,12 @@ defmodule PokerBot.PageController do
     text conn, "card = #{card}"
   end
 
+  def update(conn, %{"COMMAND" => "RECEIVE_CHIPS", "DATA" => chips}) do
+    {value, _remainder} = chips |> Integer.parse
+    PokerBot.PokerMatch.recieve_chips(value)
+    text conn, "recieved #{value} chips"
+  end
+
   def update(conn, %{"COMMAND" => "OPPONENT_MOVE", "DATA" => move}) do
     text conn, "oppent move #{move}"
   end
