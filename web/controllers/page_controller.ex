@@ -35,9 +35,12 @@ defmodule PokerBot.PageController do
     text conn, "OK"
   end
 
-  def start(conn, %{"OPPONENT_NAME" => opponent_name, "STARTING_CHIP_COUNT" => chips, "HAND_LIMIT" => hands}) do
+  def start(conn, %{"HAND_LIMIT" => hand_limit, "OPPONENT_NAME" => opponent_name, "STARTING_CHIP_COUNT" => starting_chips}) do
     "in start" |> IO.puts
-    {:ok, something} = PokerBot.PokerMatch.start()
+    {hand_limit_num, _} = Integer.parse hand_limit
+    {starting_chips_num, _} = Integer.parse starting_chips
+    match_params = %{:hand_limit => hand_limit_num, :opponent_name => opponent_name, :starting_chips => starting_chips_num}
+    {:ok, match} = PokerBot.PokerMatch.start(match_params);
     text conn, "starting"
   end
 
@@ -45,4 +48,5 @@ defmodule PokerBot.PageController do
     "in move" |> IO.puts
     text conn, PokerBot.PokerMatch.move()
   end
+
 end

@@ -1,8 +1,8 @@
 defmodule PokerBot.PokerMatch do
   use GenServer
 
-  def start() do
-    GenServer.start_link(__MODULE__,[], name: :the_poker_match)
+  def start(match_parameters) do
+    GenServer.start_link(__MODULE__,[match_parameters], name: :the_poker_match)
   end
 
   def new_card(card) when is_binary(card) do
@@ -36,15 +36,19 @@ defmodule PokerBot.PokerMatch do
 
   #####################
 
-  def init(_args) do
-    {:ok, %{:hands => [], :chips => 0}}
+  def init(args) do
+    "initiaising with args = #{inspect Enum.at(args, 0)}" |> IO.puts
+    [match_parameters | _t] = args;
+
+    {:ok, %{:hands => [], :opponent_name => match_parameters.opponent_name, :chips => match_parameters.starting_chips, :hand_limit => match_parameters.hand_limit}}
   end
 
   def handle_call(:move, _from, state) do
     "In handle call" |> IO.puts
     [hand|_previous_hands] = state.hands
-    move = choose_move hand
-    {:reply, move, state}
+    move = PokerBot.Strategy.choose_move hand
+    {return_string, new_state} = make_move move, state
+    {:reply, return_string, new_state}
   end
 
   def handle_call(_msg, _from, state) do
@@ -64,12 +68,14 @@ defmodule PokerBot.PokerMatch do
     {:noreply, new_state}
   end
 
-  def choose_move(%{:card => %{:value => card_value}}) when card_value > 6 do
-    "BET"
+  def make_move({:bet, amount}, state) do
+    total_chips = state.chips - amount
+    new_state = state |> Map.put :chips, total_chips
+    {"BET:#{amount}", new_state}
   end
 
-  def choose_move(%{:card => %{:value => card_value}}) do
-    "FOLD"
+  def make_move({:fold}, state) do
+    {"FOLD", state}
   end
   
 end
