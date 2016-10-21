@@ -17,6 +17,14 @@ defmodule PokerBot.PokerMatch do
     GenServer.cast :the_poker_match, {:recieve_chips, chips}
   end
 
+  def post_blind() do
+    GenServer.cast :the_poker_match, :post_blind
+  end
+
+  def opponent_move(move) do
+    GenServer.cast :the_poker_match, {:opponent_move, move}
+  end
+
   defp evaluate_card(card) do
     index = ~w(2 3 4 5 6 7 8 9 T J Q K A) |> Enum.find_index &(&1 == card)
     index + 1
@@ -27,7 +35,7 @@ defmodule PokerBot.PokerMatch do
   end
 
   defp begin_new_hand(state, card) do 
-    new_hand = %{:card => card}
+    new_hand = %{:card => card, :stakes => 0, :cost_to_play => 0}
     IO.puts "in begin new hand, state = #{inspect state}"
     Map.put state, :hands, [new_hand | state.hands]
   end
@@ -68,9 +76,35 @@ defmodule PokerBot.PokerMatch do
     {:noreply, new_state}
   end
 
+  def handle_cast(:post_blind, state) do
+    total_chips = state.chips - 1
+    new_state = state
+      |> Map.put :chips, total_chips 
+      |> Map.put :stakes, 1
+
+    {:noreply, new_state}
+  end
+
+  def handle_cast({:opponent_move, {:bet, amount}}, state) do
+    [current_hand, previous_hands] = state.hands
+    updated_hand = %{current_hand | cost_to_play: amount}
+    new_state = %{state | hands: List.replace_at(state.hands, 0, updated_hand)}
+    IO.puts "state = #{inspect new_state}"
+    {:noreply, new_state}
+  end
+
+  def handle_cast({:opponent_move, move}, state) do
+    {:noreply, state}
+  end
+
   def make_move({:bet, amount}, state) do
     total_chips = state.chips - amount
-    new_state = state |> Map.put :chips, total_chips
+    total_stakes = state.stakes + amount
+    #what about cost of matching last opponent bet
+    new_state = state
+      |> Map.put :chips, total_chips
+      |> Map.put :stakes, total_stakes
+
     {"BET:#{amount}", new_state}
   end
 

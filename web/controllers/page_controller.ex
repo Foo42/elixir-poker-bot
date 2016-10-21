@@ -27,7 +27,13 @@ defmodule PokerBot.PageController do
   end
 
   def update(conn, %{"COMMAND" => "OPPONENT_MOVE", "DATA" => move}) do
+    move |> parse_opponent_move |> PokerBot.PokerMatch.opponent_move
     text conn, "oppent move #{move}"
+  end
+
+  def update(conn, %{"COMMAND" => "POST_BLIND"}) do
+    PokerBot.PokerMatch.post_blind
+    text conn, "OK"
   end
 
   def update(conn, params) do
@@ -47,6 +53,23 @@ defmodule PokerBot.PageController do
   def move(conn, _params) do
     "in move" |> IO.puts
     text conn, PokerBot.PokerMatch.move()
+  end
+
+  defp parse_opponent_move(move) do
+
+    cond do
+      {"amount" => amount} = Regex.named_captures ~r/BET:(?<amount>\d+)/, move ->
+        {:bet, amount |> parse_int)}
+      "BET" = move ->
+        {:bet, 1}
+      true ->
+        {:unknown_move, move}
+      end
+  end
+
+  defp parse_int(s) do
+    {num, ""} = Integer.parse(s)
+    num
   end
 
 end
